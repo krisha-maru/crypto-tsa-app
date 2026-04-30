@@ -5,128 +5,64 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
 import os
 
-# ── Page config ───────────────────────────────────────────────────────────────
-st.set_page_config(
-    page_title="Crypto TSA Dashboard",
-    page_icon="📈",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="Crypto TSA Dashboard", page_icon="📈", layout="wide", initial_sidebar_state="expanded")
 
-# ── Theme colors (matching original script) ───────────────────────────────────
 ACCENT  = '#f78166'
 ACCENT2 = '#79c0ff'
 ACCENT3 = '#56d364'
 ACCENT4 = '#d2a8ff'
-BG      = '#0d1117'
-BG2     = '#161b22'
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;400;600&display=swap');
-
-  html, body, [class*="css"] {
-    font-family: 'Space Grotesk', sans-serif;
-    background-color: #0d1117;
-    color: #c9d1d9;
-  }
+  html, body, [class*="css"] { font-family: 'Space Grotesk', sans-serif; background-color: #0d1117; color: #c9d1d9; }
   .stApp { background-color: #0d1117; }
-  section[data-testid="stSidebar"] {
-    background-color: #161b22;
-    border-right: 1px solid #30363d;
-  }
-  .metric-card {
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 16px 20px;
-    text-align: center;
-  }
-  .metric-card .label {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #8b949e;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .metric-card .value {
-    font-size: 26px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-    color: #79c0ff;
-    margin-top: 4px;
-  }
-  .metric-card .delta {
-    font-size: 12px;
-    margin-top: 4px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .section-header {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 0.1em;
-    color: #f78166;
-    text-transform: uppercase;
-    border-bottom: 1px solid #30363d;
-    padding-bottom: 8px;
-    margin-bottom: 16px;
-  }
-  div[data-testid="stSelectbox"] label,
-  div[data-testid="stMultiSelect"] label,
-  div[data-testid="stSlider"] label {
-    color: #8b949e !important;
-    font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.05em;
-  }
-  .stTabs [data-baseweb="tab"] {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: #8b949e;
-  }
-  .stTabs [aria-selected="true"] {
-    color: #79c0ff !important;
-  }
+  section[data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
+  .metric-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px 20px; text-align: center; }
+  .metric-card .label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8b949e; font-family: 'JetBrains Mono', monospace; }
+  .metric-card .value { font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #79c0ff; margin-top: 4px; }
+  .metric-card .delta { font-size: 12px; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .section-header { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.1em; color: #f78166; text-transform: uppercase; border-bottom: 1px solid #30363d; padding-bottom: 8px; margin-bottom: 16px; }
   h1 { font-family: 'JetBrains Mono', monospace; color: #c9d1d9 !important; }
   h2, h3 { font-family: 'Space Grotesk', sans-serif; color: #c9d1d9 !important; }
-  .stAlert { background: #161b22; border: 1px solid #30363d; }
 </style>
 """, unsafe_allow_html=True)
 
-PLOTLY_LAYOUT = dict(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='#161b22',
-    font=dict(family='JetBrains Mono, monospace', color='#c9d1d9', size=11),
-    xaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
-    yaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
-    margin=dict(l=40, r=20, t=50, b=40),
-    legend=dict(bgcolor='rgba(22,27,34,0.8)', bordercolor='#30363d', borderwidth=1),
-)
+def pl(**extra):
+    """Build a plotly layout dict — extra kwargs override base values safely."""
+    layout = dict(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='#161b22',
+        font=dict(family='JetBrains Mono, monospace', color='#c9d1d9', size=11),
+        xaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
+        yaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
+        margin=dict(l=40, r=20, t=50, b=40),
+        legend=dict(bgcolor='rgba(22,27,34,0.8)', bordercolor='#30363d', borderwidth=1),
+    )
+    layout.update(extra)
+    return layout
 
-# ── Feature engineering (same as original script) ────────────────────────────
 def add_features(group):
     g = group.copy().sort_values('Date')
-    g['Returns']     = g['Close'].pct_change()
-    g['Log_Returns'] = np.log(g['Close'] / g['Close'].shift(1))
-    g['MA_7']        = g['Close'].rolling(7).mean()
-    g['MA_30']       = g['Close'].rolling(30).mean()
-    g['MA_90']       = g['Close'].rolling(90).mean()
+    g['Returns']       = g['Close'].pct_change()
+    g['Log_Returns']   = np.log(g['Close'] / g['Close'].shift(1))
+    g['MA_7']          = g['Close'].rolling(7).mean()
+    g['MA_30']         = g['Close'].rolling(30).mean()
+    g['MA_90']         = g['Close'].rolling(90).mean()
     g['Volatility_30'] = g['Log_Returns'].rolling(30).std() * np.sqrt(365)
-    g['BB_Mid']   = g['Close'].rolling(20).mean()
-    g['BB_Upper'] = g['BB_Mid'] + 2 * g['Close'].rolling(20).std()
-    g['BB_Lower'] = g['BB_Mid'] - 2 * g['Close'].rolling(20).std()
+    g['BB_Mid']        = g['Close'].rolling(20).mean()
+    g['BB_Upper']      = g['BB_Mid'] + 2 * g['Close'].rolling(20).std()
+    g['BB_Lower']      = g['BB_Mid'] - 2 * g['Close'].rolling(20).std()
     delta = g['Close'].diff()
     gain  = delta.clip(lower=0).rolling(14).mean()
     loss  = (-delta.clip(upper=0)).rolling(14).mean()
     rs    = gain / loss.replace(0, np.nan)
-    g['RSI_14'] = 100 - (100 / (1 + rs))
-    ema12 = g['Close'].ewm(span=12, adjust=False).mean()
-    ema26 = g['Close'].ewm(span=26, adjust=False).mean()
+    g['RSI_14']      = 100 - (100 / (1 + rs))
+    ema12            = g['Close'].ewm(span=12, adjust=False).mean()
+    ema26            = g['Close'].ewm(span=26, adjust=False).mean()
     g['MACD']        = ema12 - ema26
     g['MACD_Signal'] = g['MACD'].ewm(span=9, adjust=False).mean()
     g['MACD_Hist']   = g['MACD'] - g['MACD_Signal']
@@ -134,15 +70,13 @@ def add_features(group):
     hpc = (g['High'] - g['Close'].shift(1)).abs()
     lpc = (g['Low']  - g['Close'].shift(1)).abs()
     tr  = pd.concat([hl, hpc, lpc], axis=1).max(axis=1)
-    g['ATR_14'] = tr.rolling(14).mean()
+    g['ATR_14']         = tr.rolling(14).mean()
     g['Pct_Change_7d']  = g['Close'].pct_change(7)  * 100
     g['Pct_Change_30d'] = g['Close'].pct_change(30) * 100
     return g
 
-# ── Data loading ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    # Try outputs/ first (pre-processed), then raw CSV
     if os.path.exists("outputs/featured_crypto.csv"):
         df = pd.read_csv("outputs/featured_crypto.csv", parse_dates=['Date'])
     elif os.path.exists("master_crypto.csv"):
@@ -151,35 +85,37 @@ def load_data():
         df = df.sort_values(['Name', 'Date']).reset_index(drop=True)
         df = df.groupby('Name', group_keys=False).apply(add_features).reset_index(drop=True)
     else:
-        st.error("❌ Data file not found. Place `master_crypto.csv` in the same folder as `app.py`.")
+        st.error("Data file not found. Place master_crypto.csv in the same folder as app.py.")
         st.stop()
     return df
 
-# ── Load pre-computed model outputs if available ──────────────────────────────
 @st.cache_data
 def load_model_outputs():
     out = {}
-    paths = {
+    for key, path in {
         'arima_sarima': 'outputs/powerbi_arima_sarima.csv',
         'prophet':      'outputs/powerbi_prophet.csv',
         'lstm':         'outputs/powerbi_lstm.csv',
         'eval':         'outputs/powerbi_model_evaluation.csv',
         'stationarity': 'outputs/stationarity_tests.csv',
-    }
-    for key, path in paths.items():
+    }.items():
         if os.path.exists(path):
-            out[key] = pd.read_csv(path, parse_dates=['Date'] if 'Date' in pd.read_csv(path, nrows=0).columns else [])
+            tmp = pd.read_csv(path)
+            for col in tmp.columns:
+                if col.lower() in ('date', 'ds'):
+                    tmp[col] = pd.to_datetime(tmp[col], errors='ignore')
+            out[key] = tmp
     return out
 
 with st.spinner("Loading data..."):
     df = load_data()
     model_outputs = load_model_outputs()
 
-all_coins   = sorted(df['Name'].unique().tolist())
+all_coins = sorted(df['Name'].unique().tolist())
 coin_colors = {
-    'Bitcoin':  ACCENT2, 'Ethereum': ACCENT,  'Litecoin': ACCENT3,
-    'XRP':      ACCENT4, 'Dogecoin': '#ffa657','Monero':   '#ff7b72',
-    'Solana':   '#58a6ff','Cardano':  '#bc8cff','Stellar':  '#3fb950',
+    'Bitcoin':  ACCENT2, 'Ethereum': ACCENT,   'Litecoin': ACCENT3,
+    'XRP':      ACCENT4, 'Dogecoin': '#ffa657', 'Monero':   '#ff7b72',
+    'Solana':   '#58a6ff','Cardano':  '#bc8cff', 'Stellar':  '#3fb950',
     'Chainlink':'#e3b341',
 }
 def get_color(coin):
@@ -188,98 +124,71 @@ def get_color(coin):
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
-    <div style="font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:700;
-                color:#f78166; letter-spacing:0.05em; padding-bottom:12px;
-                border-bottom:1px solid #30363d; margin-bottom:16px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;
+                color:#f78166;letter-spacing:0.05em;padding-bottom:12px;
+                border-bottom:1px solid #30363d;margin-bottom:16px;">
         📈 CRYPTO TSA
     </div>
-    <div style="font-size:11px; color:#8b949e; font-family:'JetBrains Mono',monospace;
-                margin-bottom:20px;">
+    <div style="font-size:11px;color:#8b949e;font-family:'JetBrains Mono',monospace;margin-bottom:20px;">
         Amdox Technologies<br>Data Analytics Project<br>2013 – 2021 · 23 Coins
-    </div>
-    """, unsafe_allow_html=True)
+    </div>""", unsafe_allow_html=True)
 
-    primary_coin = st.selectbox("Primary Coin", all_coins,
-                                index=all_coins.index('Bitcoin') if 'Bitcoin' in all_coins else 0)
-
+    primary_coin  = st.selectbox("Primary Coin", all_coins,
+                                  index=all_coins.index('Bitcoin') if 'Bitcoin' in all_coins else 0)
     compare_coins = st.multiselect("Compare Coins",
-                                   [c for c in all_coins if c != primary_coin],
-                                   default=[c for c in ['Ethereum','Litecoin','XRP','Dogecoin'] if c in all_coins])
-
-    date_min = df['Date'].min().date()
-    date_max = df['Date'].max().date()
-    date_range = st.slider("Date Range",
-                           min_value=date_min, max_value=date_max,
-                           value=(date_min, date_max))
-
+                                    [c for c in all_coins if c != primary_coin],
+                                    default=[c for c in ['Ethereum','Litecoin','XRP','Dogecoin'] if c in all_coins])
+    date_min   = df['Date'].min().date()
+    date_max   = df['Date'].max().date()
+    date_range = st.slider("Date Range", min_value=date_min, max_value=date_max, value=(date_min, date_max))
     st.markdown("---")
-    st.markdown(f"""
-    <div style="font-size:10px; color:#8b949e; font-family:'JetBrains Mono',monospace; line-height:1.8;">
+    st.markdown(f"""<div style="font-size:10px;color:#8b949e;font-family:'JetBrains Mono',monospace;line-height:1.8;">
         <b style="color:#c9d1d9;">Dataset</b><br>
-        Coins: {df['Name'].nunique()}<br>
-        Rows: {len(df):,}<br>
-        From: {df['Date'].min().date()}<br>
-        To: {df['Date'].max().date()}
-    </div>
-    """, unsafe_allow_html=True)
+        Coins: {df['Name'].nunique()}<br>Rows: {len(df):,}<br>
+        From: {df['Date'].min().date()}<br>To: {df['Date'].max().date()}
+    </div>""", unsafe_allow_html=True)
 
-# ── Filter data ───────────────────────────────────────────────────────────────
-mask = (df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])
-dff  = df[mask].copy()
-
+mask       = (df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])
+dff        = df[mask].copy()
 primary_df = dff[dff['Name'] == primary_coin].sort_values('Date')
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
-<div style="display:flex; align-items:baseline; gap:16px; margin-bottom:4px;">
-  <h1 style="font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700;
-             color:#c9d1d9; margin:0;">{primary_coin}</h1>
-  <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#8b949e;
-               letter-spacing:0.1em;">TIME SERIES ANALYSIS</span>
-</div>
-""", unsafe_allow_html=True)
+<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px;">
+  <h1 style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:#c9d1d9;margin:0;">{primary_coin}</h1>
+  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8b949e;letter-spacing:0.1em;">TIME SERIES ANALYSIS</span>
+</div>""", unsafe_allow_html=True)
 
 # ── KPI cards ─────────────────────────────────────────────────────────────────
-latest = primary_df.iloc[-1] if len(primary_df) > 0 else None
-if latest is not None:
+if len(primary_df) > 0:
+    latest = primary_df.iloc[-1]
     prev   = primary_df.iloc[-2] if len(primary_df) > 1 else latest
-    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    k1, k2, k3, k4, k5 = st.columns(5)
 
-    def kpi_card(col, label, value, delta=None, delta_positive=True):
-        delta_color = ACCENT3 if delta_positive else ACCENT
-        delta_html  = f'<div class="delta" style="color:{delta_color};">{delta}</div>' if delta else ''
-        col.markdown(f"""
-        <div class="metric-card">
-          <div class="label">{label}</div>
-          <div class="value">{value}</div>
-          {delta_html}
-        </div>""", unsafe_allow_html=True)
+    def kpi(col, label, value, delta=None, pos=True):
+        dc = ACCENT3 if pos else ACCENT
+        dh = f'<div class="delta" style="color:{dc};">{delta}</div>' if delta else ''
+        col.markdown(f'<div class="metric-card"><div class="label">{label}</div>'
+                     f'<div class="value">{value}</div>{dh}</div>', unsafe_allow_html=True)
 
-    price_delta = latest['Close'] - prev['Close']
-    price_pct   = (price_delta / prev['Close']) * 100
-
-    kpi_card(kpi1, "Close Price", f"${latest['Close']:,.2f}",
-             f"{price_pct:+.2f}%", price_delta >= 0)
-    kpi_card(kpi2, "Volume", f"${latest['Volume']/1e9:.2f}B" if latest['Volume'] > 1e9 else f"${latest['Volume']/1e6:.1f}M")
-    rsi_val = latest.get('RSI_14', np.nan)
-    rsi_lbl = "Overbought" if rsi_val > 70 else ("Oversold" if rsi_val < 30 else "Neutral")
-    kpi_card(kpi3, f"RSI 14 · {rsi_lbl}", f"{rsi_val:.1f}" if not np.isnan(rsi_val) else "N/A",
-             None)
-    vol_val = latest.get('Volatility_30', np.nan)
-    kpi_card(kpi4, "Volatility 30d", f"{vol_val:.2f}" if not np.isnan(vol_val) else "N/A")
-    kpi_card(kpi5, "7d Change", f"{latest.get('Pct_Change_7d', 0):+.2f}%",
-             None, latest.get('Pct_Change_7d', 0) >= 0)
+    pd_delta = latest['Close'] - prev['Close']
+    pd_pct   = (pd_delta / prev['Close']) * 100
+    kpi(k1, "Close Price", f"${latest['Close']:,.2f}", f"{pd_pct:+.2f}%", pd_delta >= 0)
+    vol = latest['Volume']
+    kpi(k2, "Volume", f"${vol/1e9:.2f}B" if vol > 1e9 else f"${vol/1e6:.1f}M")
+    rsi = latest.get('RSI_14', np.nan)
+    lbl = "Overbought" if rsi > 70 else ("Oversold" if rsi < 30 else "Neutral")
+    kpi(k3, f"RSI 14 · {lbl}", f"{rsi:.1f}" if not np.isnan(rsi) else "N/A")
+    v30 = latest.get('Volatility_30', np.nan)
+    kpi(k4, "Volatility 30d", f"{v30:.2f}" if not np.isnan(v30) else "N/A")
+    p7  = latest.get('Pct_Change_7d', 0)
+    kpi(k5, "7d Change", f"{p7:+.2f}%", None, p7 >= 0)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "📊  Price & Indicators",
-    "🔀  Multi-Coin",
-    "📉  Volatility & Returns",
-    "🔮  Forecasting",
-    "📋  Model Evaluation",
-    "🗂️  Raw Data",
+    "📊  Price & Indicators", "🔀  Multi-Coin", "📉  Volatility & Returns",
+    "🔮  Forecasting", "📋  Model Evaluation", "🗂️  Raw Data",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -288,77 +197,57 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.markdown(f'<div class="section-header">{primary_coin} — Price History & Technical Indicators</div>',
                 unsafe_allow_html=True)
+    show_ma = st.checkbox("Moving Averages (7/30/90)", value=True)
+    show_bb = st.checkbox("Bollinger Bands", value=True)
 
-    show_ma   = st.checkbox("Moving Averages (7/30/90)", value=True)
-    show_bb   = st.checkbox("Bollinger Bands", value=True)
-
-    # Candlestick + MAs + BB
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True,
-                        vertical_spacing=0.04,
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.04,
                         row_heights=[0.55, 0.22, 0.23],
                         subplot_titles=('Price', 'Volume', 'RSI (14)'))
-
     fig.add_trace(go.Candlestick(
-        x=primary_df['Date'],
-        open=primary_df['Open'], high=primary_df['High'],
-        low=primary_df['Low'],   close=primary_df['Close'],
-        name='OHLC',
-        increasing_line_color=ACCENT3,
-        decreasing_line_color=ACCENT,
-        increasing_fillcolor=ACCENT3,
-        decreasing_fillcolor=ACCENT,
-    ), row=1, col=1)
-
+        x=primary_df['Date'], open=primary_df['Open'], high=primary_df['High'],
+        low=primary_df['Low'], close=primary_df['Close'], name='OHLC',
+        increasing_line_color=ACCENT3, decreasing_line_color=ACCENT,
+        increasing_fillcolor=ACCENT3, decreasing_fillcolor=ACCENT), row=1, col=1)
     if show_bb:
         fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['BB_Upper'],
-            line=dict(color='rgba(121,192,255,0.35)', width=0.8), name='BB Upper',
-            showlegend=True), row=1, col=1)
+            line=dict(color='rgba(121,192,255,0.35)', width=0.8), name='BB Upper'), row=1, col=1)
         fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['BB_Lower'],
             line=dict(color='rgba(121,192,255,0.35)', width=0.8), name='BB Lower',
-            fill='tonexty', fillcolor='rgba(121,192,255,0.04)',
-            showlegend=True), row=1, col=1)
-
+            fill='tonexty', fillcolor='rgba(121,192,255,0.04)'), row=1, col=1)
     if show_ma:
         for ma, color, w in [('MA_7', ACCENT, 0.9), ('MA_30', ACCENT3, 1.1), ('MA_90', ACCENT4, 1.3)]:
             fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df[ma],
                 line=dict(color=color, width=w, dash='dot'), name=ma), row=1, col=1)
-
-    # Volume bars
-    colors_vol = [ACCENT3 if c >= o else ACCENT
-                  for c, o in zip(primary_df['Close'], primary_df['Open'])]
+    vol_colors = [ACCENT3 if c >= o else ACCENT for c, o in zip(primary_df['Close'], primary_df['Open'])]
     fig.add_trace(go.Bar(x=primary_df['Date'], y=primary_df['Volume'],
-        marker_color=colors_vol, opacity=0.6, name='Volume', showlegend=False), row=2, col=1)
-
-    # RSI
+        marker_color=vol_colors, opacity=0.6, name='Volume', showlegend=False), row=2, col=1)
     fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['RSI_14'],
         line=dict(color=ACCENT4, width=1.2), name='RSI 14', showlegend=False), row=3, col=1)
     fig.add_hline(y=70, line=dict(color=ACCENT,  dash='dash', width=0.8), row=3, col=1)
     fig.add_hline(y=30, line=dict(color=ACCENT3, dash='dash', width=0.8), row=3, col=1)
-
-    fig.update_layout(**PLOTLY_LAYOUT, height=680,
-                      title=f'{primary_coin} — Candlestick Chart',
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='#161b22',
+                      font=dict(family='JetBrains Mono, monospace', color='#c9d1d9', size=11),
+                      margin=dict(l=40, r=20, t=50, b=40),
+                      legend=dict(bgcolor='rgba(22,27,34,0.8)', bordercolor='#30363d', borderwidth=1),
+                      height=680, title=f'{primary_coin} — Candlestick Chart',
                       xaxis_rangeslider_visible=False)
-    fig.update_yaxes(gridcolor='#21262d', row=1, col=1)
-    fig.update_yaxes(gridcolor='#21262d', row=2, col=1)
-    fig.update_yaxes(gridcolor='#21262d', range=[0,100], row=3, col=1)
+    fig.update_xaxes(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e')
+    fig.update_yaxes(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e')
+    fig.update_yaxes(range=[0, 100], row=3, col=1)
     st.plotly_chart(fig, use_container_width=True)
 
-    # MACD
     st.markdown('<div class="section-header">MACD</div>', unsafe_allow_html=True)
-    fig_macd = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                              vertical_spacing=0.05, row_heights=[0.6, 0.4])
+    fig_macd = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05, row_heights=[0.6, 0.4])
     fig_macd.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['Close'],
         line=dict(color=ACCENT2, width=1.2), name='Close'), row=1, col=1)
     fig_macd.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['MACD'],
         line=dict(color=ACCENT2, width=1.0), name='MACD'), row=2, col=1)
     fig_macd.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['MACD_Signal'],
         line=dict(color=ACCENT, width=1.0), name='Signal'), row=2, col=1)
-    hist_colors = [ACCENT3 if v >= 0 else '#ff7b72'
-                   for v in primary_df['MACD_Hist'].fillna(0)]
+    hist_colors = [ACCENT3 if v >= 0 else '#ff7b72' for v in primary_df['MACD_Hist'].fillna(0)]
     fig_macd.add_trace(go.Bar(x=primary_df['Date'], y=primary_df['MACD_Hist'],
         marker_color=hist_colors, opacity=0.7, name='Histogram'), row=2, col=1)
-    fig_macd.update_layout(**PLOTLY_LAYOUT, height=420,
-                            title=f'{primary_coin} — MACD')
+    fig_macd.update_layout(**pl(height=420, title=f'{primary_coin} — MACD'))
     st.plotly_chart(fig_macd, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -367,8 +256,7 @@ with tab1:
 with tab2:
     all_selected = [primary_coin] + compare_coins
 
-    st.markdown('<div class="section-header">Normalized Price Comparison (Base = 1)</div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Normalized Price Comparison (Base = 1)</div>', unsafe_allow_html=True)
     fig2 = go.Figure()
     for coin in all_selected:
         sub = dff[dff['Name'] == coin].sort_values('Date')
@@ -377,46 +265,31 @@ with tab2:
         norm = sub['Close'] / sub['Close'].iloc[0]
         fig2.add_trace(go.Scatter(x=sub['Date'], y=norm, name=coin, mode='lines',
             line=dict(color=get_color(coin), width=1.4)))
-    fig2.update_layout(**PLOTLY_LAYOUT, height=420,
-                       yaxis_title='Normalized Price', hovermode='x unified')
+    fig2.update_layout(**pl(height=420, yaxis_title='Normalized Price', hovermode='x unified'))
     st.plotly_chart(fig2, use_container_width=True)
 
-    # Correlation heatmap
-    st.markdown('<div class="section-header">Price Correlation Heatmap</div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Price Correlation Heatmap</div>', unsafe_allow_html=True)
     pivot = dff.pivot_table(index='Date', columns='Name', values='Close')
-    avail_coins = [c for c in all_selected if c in pivot.columns]
-    if len(avail_coins) >= 2:
-        corr = pivot[avail_coins].corr()
+    avail = [c for c in all_selected if c in pivot.columns]
+    if len(avail) >= 2:
+        corr = pivot[avail].corr()
         fig_corr = go.Figure(go.Heatmap(
-            z=corr.values,
-            x=corr.columns.tolist(),
-            y=corr.index.tolist(),
-            colorscale='RdYlGn',
-            zmid=0,
-            text=np.round(corr.values, 2),
-            texttemplate='%{text}',
-            showscale=True,
-            colorbar=dict(tickfont=dict(color='#c9d1d9'))
-        ))
-        fig_corr.update_layout(**PLOTLY_LAYOUT, height=420,
-                               title='Return Correlation Matrix')
+            z=corr.values, x=corr.columns.tolist(), y=corr.index.tolist(),
+            colorscale='RdYlGn', zmid=0,
+            text=np.round(corr.values, 2), texttemplate='%{text}', showscale=True))
+        fig_corr.update_layout(**pl(height=420, title='Return Correlation Matrix'))
         st.plotly_chart(fig_corr, use_container_width=True)
     else:
         st.info("Select at least 2 coins to see correlation.")
 
-    # Volume comparison
-    st.markdown('<div class="section-header">Volume Comparison</div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Volume Comparison</div>', unsafe_allow_html=True)
     fig_vol2 = go.Figure()
     for coin in all_selected:
         sub = dff[dff['Name'] == coin].sort_values('Date')
         fig_vol2.add_trace(go.Scatter(x=sub['Date'], y=sub['Volume'], name=coin,
             mode='lines', line=dict(color=get_color(coin), width=1.0),
-            fill='tozeroy', fillcolor='rgba(121,192,255,0.07)'
-        ))
-    fig_vol2.update_layout(**PLOTLY_LAYOUT, height=350,
-                           yaxis_title='Volume', hovermode='x unified')
+            fill='tozeroy', fillcolor='rgba(121,192,255,0.07)'))
+    fig_vol2.update_layout(**pl(height=350, yaxis_title='Volume', hovermode='x unified'))
     st.plotly_chart(fig_vol2, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -424,36 +297,29 @@ with tab2:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
     col_a, col_b = st.columns(2)
-
     with col_a:
-        st.markdown('<div class="section-header">30-Day Annualised Volatility</div>',
-                    unsafe_allow_html=True)
+        st.markdown('<div class="section-header">30-Day Annualised Volatility</div>', unsafe_allow_html=True)
         fig_v = go.Figure()
         for coin in [primary_coin] + compare_coins[:5]:
             sub = dff[dff['Name'] == coin].sort_values('Date').dropna(subset=['Volatility_30'])
             fig_v.add_trace(go.Scatter(x=sub['Date'], y=sub['Volatility_30'], name=coin,
                 line=dict(color=get_color(coin), width=1.2)))
-        fig_v.update_layout(**PLOTLY_LAYOUT, height=360,
-                            yaxis_title='Volatility (annualised)')
+        fig_v.update_layout(**pl(height=360, yaxis_title='Volatility (annualised)'))
         st.plotly_chart(fig_v, use_container_width=True)
 
     with col_b:
-        st.markdown('<div class="section-header">Log Returns Distribution</div>',
-                    unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Log Returns Distribution</div>', unsafe_allow_html=True)
         sub_ret = primary_df['Log_Returns'].dropna()
         fig_ret = go.Figure()
         fig_ret.add_trace(go.Histogram(x=sub_ret, nbinsx=80,
             marker_color=get_color(primary_coin), opacity=0.8, name='Log Returns'))
-        fig_ret.add_vline(x=sub_ret.mean(), line=dict(color='white', dash='dash', width=1))
-        fig_ret.add_vline(x=sub_ret.mean() + 2*sub_ret.std(), line=dict(color=ACCENT, dash='dot', width=0.8))
-        fig_ret.add_vline(x=sub_ret.mean() - 2*sub_ret.std(), line=dict(color=ACCENT, dash='dot', width=0.8))
-        fig_ret.update_layout(**PLOTLY_LAYOUT, height=360,
-                              xaxis_title='Log Return', yaxis_title='Count')
+        fig_ret.add_vline(x=float(sub_ret.mean()), line=dict(color='white', dash='dash', width=1))
+        fig_ret.add_vline(x=float(sub_ret.mean() + 2*sub_ret.std()), line=dict(color=ACCENT, dash='dot', width=0.8))
+        fig_ret.add_vline(x=float(sub_ret.mean() - 2*sub_ret.std()), line=dict(color=ACCENT, dash='dot', width=0.8))
+        fig_ret.update_layout(**pl(height=360, xaxis_title='Log Return', yaxis_title='Count'))
         st.plotly_chart(fig_ret, use_container_width=True)
 
-    # Volatility heatmap by year/month
-    st.markdown(f'<div class="section-header">{primary_coin} — Monthly Volatility Heatmap</div>',
-                unsafe_allow_html=True)
+    st.markdown(f'<div class="section-header">{primary_coin} — Monthly Volatility Heatmap</div>', unsafe_allow_html=True)
     btc_vol = primary_df[['Date','Volatility_30']].dropna().copy()
     btc_vol['Year']  = btc_vol['Date'].dt.year
     btc_vol['Month'] = btc_vol['Date'].dt.month
@@ -464,15 +330,10 @@ with tab3:
             x=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][:vol_pivot.shape[1]],
             y=vol_pivot.index.tolist(),
             colorscale='RdYlGn_r',
-            text=np.round(vol_pivot.values, 2),
-            texttemplate='%{text}',
-            colorbar=dict(tickfont=dict(color='#c9d1d9'))
-        ))
-        fig_vh.update_layout(**PLOTLY_LAYOUT, height=380,
-                             title=f'{primary_coin} Average Monthly Volatility')
+            text=np.round(vol_pivot.values, 2), texttemplate='%{text}'))
+        fig_vh.update_layout(**pl(height=380, title=f'{primary_coin} Average Monthly Volatility'))
         st.plotly_chart(fig_vh, use_container_width=True)
 
-    # RSI comparison
     st.markdown('<div class="section-header">RSI Comparison</div>', unsafe_allow_html=True)
     fig_rsi = go.Figure()
     for coin in [primary_coin] + compare_coins[:3]:
@@ -481,29 +342,18 @@ with tab3:
             line=dict(color=get_color(coin), width=1.1)))
     fig_rsi.add_hline(y=70, line=dict(color=ACCENT,  dash='dash', width=0.8))
     fig_rsi.add_hline(y=30, line=dict(color=ACCENT3, dash='dash', width=0.8))
-    rsi_layout = {k: v for k, v in PLOTLY_LAYOUT.items() if k != 'yaxis'}
-    fig_rsi.update_layout(**rsi_layout, height=340,
-                          yaxis=dict(range=[0,100], gridcolor='#21262d', tickcolor='#8b949e'),
-                          yaxis_title='RSI (14)')
+    fig_rsi.update_layout(**pl(height=340, yaxis_title='RSI (14)',
+                               yaxis=dict(range=[0, 100], gridcolor='#21262d', tickcolor='#8b949e')))
     st.plotly_chart(fig_rsi, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 4 — Forecasting
 # ══════════════════════════════════════════════════════════════════════════════
 with tab4:
-    st.markdown('<div class="section-header">Model Forecasts (Bitcoin · Pre-computed)</div>',
-                unsafe_allow_html=True)
-
+    st.markdown('<div class="section-header">Model Forecasts (Bitcoin · Pre-computed)</div>', unsafe_allow_html=True)
     if not model_outputs:
-        st.info("""
-        **No pre-computed forecasts found.**
-
-        Run `crypto_tsa_project.py` once to generate the `outputs/` folder,
-        then restart this app. The forecasting models (ARIMA, SARIMA, Prophet, LSTM)
-        require significant compute time and are loaded from pre-generated CSVs.
-        """)
+        st.info("No pre-computed forecasts found. Run crypto_tsa_project.py once to generate the outputs/ folder, then redeploy.")
     else:
-        # ARIMA / SARIMA
         if 'arima_sarima' in model_outputs:
             st.markdown("#### ARIMA & SARIMA")
             as_df = model_outputs['arima_sarima']
@@ -516,12 +366,10 @@ with tab4:
             if 'SARIMA_Pred' in as_df.columns:
                 fig_as.add_trace(go.Scatter(x=as_df['Date'], y=as_df['SARIMA_Pred'],
                     line=dict(color=ACCENT3, width=1.5, dash='dot'), name='SARIMA'))
-            fig_as.update_layout(**PLOTLY_LAYOUT, height=380,
-                                 yaxis_title='Price (USD)',
-                                 title='Bitcoin — ARIMA & SARIMA Forecast vs Actual')
+            fig_as.update_layout(**pl(height=380, yaxis_title='Price (USD)',
+                                      title='Bitcoin — ARIMA & SARIMA Forecast vs Actual'))
             st.plotly_chart(fig_as, use_container_width=True)
 
-        # Prophet
         if 'prophet' in model_outputs:
             st.markdown("#### Prophet")
             pr_df = model_outputs['prophet']
@@ -535,12 +383,10 @@ with tab4:
                     line=dict(color='rgba(0,0,0,0)'), name='Uncertainty Band'))
             fig_pr.add_trace(go.Scatter(x=pr_df['ds'], y=pr_df['yhat'],
                 line=dict(color=ACCENT4, width=1.5), name='Prophet Forecast'))
-            fig_pr.update_layout(**PLOTLY_LAYOUT, height=380,
-                                 yaxis_title='Price (USD)',
-                                 title='Bitcoin — Prophet Forecast (+90 days)')
+            fig_pr.update_layout(**pl(height=380, yaxis_title='Price (USD)',
+                                      title='Bitcoin — Prophet Forecast (+90 days)'))
             st.plotly_chart(fig_pr, use_container_width=True)
 
-        # LSTM
         if 'lstm' in model_outputs:
             st.markdown("#### LSTM")
             lstm_df = model_outputs['lstm']
@@ -550,15 +396,13 @@ with tab4:
             if 'LSTM_Pred' in lstm_df.columns:
                 fig_lstm.add_trace(go.Scatter(x=lstm_df['Date'], y=lstm_df['LSTM_Pred'],
                     line=dict(color=ACCENT, width=1.5, dash='dash'), name='LSTM Predicted'))
-            fig_lstm.update_layout(**PLOTLY_LAYOUT, height=380,
-                                   yaxis_title='Price (USD)',
-                                   title='Bitcoin — LSTM Forecast vs Actual')
+            fig_lstm.update_layout(**pl(height=380, yaxis_title='Price (USD)',
+                                        title='Bitcoin — LSTM Forecast vs Actual'))
             st.plotly_chart(fig_lstm, use_container_width=True)
 
-        # Stationarity
         if 'stationarity' in model_outputs:
             st.markdown("#### ADF Stationarity Tests")
-            adf = model_outputs['stationarity']
+            adf = model_outputs['stationarity'].copy()
             if 'Stationary' in adf.columns:
                 adf['Result'] = adf['Stationary'].map({True: '✓ Stationary', False: '✗ Non-stationary'})
             st.dataframe(adf, use_container_width=True, hide_index=True)
@@ -567,17 +411,13 @@ with tab4:
 # TAB 5 — Model Evaluation
 # ══════════════════════════════════════════════════════════════════════════════
 with tab5:
-    st.markdown('<div class="section-header">Model Evaluation — Bitcoin Price Forecasting</div>',
-                unsafe_allow_html=True)
-
+    st.markdown('<div class="section-header">Model Evaluation — Bitcoin Price Forecasting</div>', unsafe_allow_html=True)
     if 'eval' in model_outputs:
         eval_df = model_outputs['eval']
-
-        # Bar chart comparison
         metrics = [c for c in ['MAE', 'RMSE', 'MAPE_%'] if c in eval_df.columns]
         if metrics:
-            cols = st.columns(len(metrics))
             bar_colors = [ACCENT, ACCENT2, ACCENT3, ACCENT4]
+            cols = st.columns(len(metrics))
             for col, metric in zip(cols, metrics):
                 fig_bar = go.Figure(go.Bar(
                     x=eval_df['Model'],
@@ -587,11 +427,16 @@ with tab5:
                     textposition='outside',
                     textfont=dict(color='#c9d1d9', size=10)
                 ))
-                fig_bar.update_layout(**PLOTLY_LAYOUT, height=320,
-                                      title=metric,
-                                      showlegend=False,
-                                      yaxis=dict(gridcolor='#21262d'))
-                fig_bar.update_xaxes(tickangle=-20, tickfont=dict(size=9))
+                fig_bar.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='#161b22',
+                    font=dict(family='JetBrains Mono, monospace', color='#c9d1d9', size=11),
+                    margin=dict(l=40, r=20, t=50, b=40),
+                    xaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e', tickangle=-20),
+                    yaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
+                    legend=dict(bgcolor='rgba(22,27,34,0.8)', bordercolor='#30363d', borderwidth=1),
+                    height=320, title=metric, showlegend=False
+                )
                 col.plotly_chart(fig_bar, use_container_width=True)
 
         st.markdown("#### Leaderboard")
@@ -601,29 +446,24 @@ with tab5:
             display_df.insert(0, 'Rank', range(1, len(display_df)+1))
         st.dataframe(display_df, use_container_width=True, hide_index=True)
     else:
-        st.info("Run `crypto_tsa_project.py` first to generate model evaluation outputs.")
+        st.info("Run crypto_tsa_project.py first to generate model evaluation outputs.")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 6 — Raw Data
 # ══════════════════════════════════════════════════════════════════════════════
 with tab6:
     st.markdown('<div class="section-header">Dataset Explorer</div>', unsafe_allow_html=True)
-
     selected_coins_raw = st.multiselect("Filter by Coin", all_coins,
-                                        default=[primary_coin], key='raw_coin_filter')
+                                         default=[primary_coin], key='raw_coin_filter')
+    default_cols = [c for c in ['Date','Name','Open','High','Low','Close','Volume',
+                                 'MA_7','MA_30','RSI_14','MACD','Volatility_30'] if c in dff.columns]
     show_cols = st.multiselect("Columns", dff.columns.tolist(),
-                               default=['Date','Name','Open','High','Low','Close','Volume',
-                                        'MA_7','MA_30','RSI_14','MACD','Volatility_30'],
-                               key='raw_col_filter')
-
+                                default=default_cols, key='raw_col_filter')
     filtered_raw = dff[dff['Name'].isin(selected_coins_raw)][show_cols] if selected_coins_raw else dff[show_cols]
-
-    st.markdown(f"<div style='font-size:11px; color:#8b949e; font-family:JetBrains Mono,monospace; margin-bottom:8px;'>"
+    st.markdown(f"<div style='font-size:11px;color:#8b949e;font-family:JetBrains Mono,monospace;margin-bottom:8px;'>"
                 f"{len(filtered_raw):,} rows · {len(show_cols)} columns</div>", unsafe_allow_html=True)
     st.dataframe(filtered_raw.sort_values('Date', ascending=False).head(500),
                  use_container_width=True, hide_index=True)
-
     csv_data = filtered_raw.to_csv(index=False).encode('utf-8')
     st.download_button("⬇ Download CSV", csv_data,
-                       file_name=f"crypto_filtered_{primary_coin}.csv",
-                       mime="text/csv")
+                        file_name=f"crypto_filtered_{primary_coin}.csv", mime="text/csv")
