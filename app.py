@@ -103,7 +103,10 @@ def load_model_outputs():
             tmp = pd.read_csv(path)
             for col in tmp.columns:
                 if col.lower() in ('date', 'ds'):
-                    tmp[col] = pd.to_datetime(tmp[col], errors='ignore')
+                    try:
+                        tmp[col] = pd.to_datetime(tmp[col])
+                    except Exception:
+                        pass
             out[key] = tmp
     return out
 
