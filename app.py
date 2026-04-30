@@ -152,9 +152,10 @@ with st.sidebar:
 
     primary_coin  = st.selectbox("Primary Coin", all_coins,
                                   index=all_coins.index('Bitcoin') if 'Bitcoin' in all_coins else 0)
-    compare_coins = st.multiselect("Compare Coins",
-                                    [c for c in all_coins if c != primary_coin],
-                                    default=[c for c in ['Ethereum','Litecoin','XRP','Dogecoin'] if c in all_coins])
+    _compare_options = [c for c in all_coins if c != primary_coin]
+    _compare_defaults = [c for c in ['Ethereum','Litecoin','XRP','Dogecoin']
+                         if c in _compare_options]
+    compare_coins = st.multiselect("Compare Coins", _compare_options, default=_compare_defaults)
     date_min   = df['Date'].min().date()
     date_max   = df['Date'].max().date()
     date_range = st.slider("Date Range", min_value=date_min, max_value=date_max, value=(date_min, date_max))
