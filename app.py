@@ -132,9 +132,7 @@ with st.sidebar:
                 border-bottom:1px solid #30363d;margin-bottom:16px;">
         📈 CRYPTO TSA
     </div>
-    <div style="font-size:11px;color:#8b949e;font-family:'JetBrains Mono',monospace;margin-bottom:20px;">
-        Amdox Technologies<br>Data Analytics Project<br>2013 – 2021 · 23 Coins
-    </div>""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
     primary_coin  = st.selectbox("Primary Coin", all_coins,
                                   index=all_coins.index('Bitcoin') if 'Bitcoin' in all_coins else 0)
