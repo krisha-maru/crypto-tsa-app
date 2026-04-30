@@ -10,24 +10,24 @@ import os
 
 st.set_page_config(page_title="Crypto TSA Dashboard", page_icon="📈", layout="wide", initial_sidebar_state="expanded")
 
-ACCENT  = '#f78166'
-ACCENT2 = '#79c0ff'
-ACCENT3 = '#56d364'
-ACCENT4 = '#d2a8ff'
+ACCENT  = '#e05c3a'
+ACCENT2 = '#1a73e8'
+ACCENT3 = '#1e8c3a'
+ACCENT4 = '#7c3aed'
 
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;400;600&display=swap');
-  html, body, [class*="css"] { font-family: 'Space Grotesk', sans-serif; background-color: #0d1117; color: #c9d1d9; }
-  .stApp { background-color: #0d1117; }
-  section[data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
-  .metric-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px 20px; text-align: center; }
-  .metric-card .label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8b949e; font-family: 'JetBrains Mono', monospace; }
-  .metric-card .value { font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #79c0ff; margin-top: 4px; }
+  html, body, [class*="css"] { font-family: 'Space Grotesk', sans-serif; background-color: #f6f8fa; color: #1f2328; }
+  .stApp { background-color: #f6f8fa; }
+  section[data-testid="stSidebar"] { background-color: #ffffff; border-right: 1px solid #d0d7de; }
+  .metric-card { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .metric-card .label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #57606a; font-family: 'JetBrains Mono', monospace; }
+  .metric-card .value { font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #1a73e8; margin-top: 4px; }
   .metric-card .delta { font-size: 12px; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
-  .section-header { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.1em; color: #f78166; text-transform: uppercase; border-bottom: 1px solid #30363d; padding-bottom: 8px; margin-bottom: 16px; }
-  h1 { font-family: 'JetBrains Mono', monospace; color: #c9d1d9 !important; }
-  h2, h3 { font-family: 'Space Grotesk', sans-serif; color: #c9d1d9 !important; }
+  .section-header { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.1em; color: #e05c3a; text-transform: uppercase; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; margin-bottom: 16px; }
+  h1 { font-family: 'JetBrains Mono', monospace; color: #1f2328 !important; }
+  h2, h3 { font-family: 'Space Grotesk', sans-serif; color: #1f2328 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -35,12 +35,12 @@ def pl(**extra):
     """Build a plotly layout dict — extra kwargs override base values safely."""
     layout = dict(
         paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='#161b22',
-        font=dict(family='JetBrains Mono, monospace', color='#c9d1d9', size=11),
-        xaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
-        yaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
+        plot_bgcolor='#ffffff',
+        font=dict(family='JetBrains Mono, monospace', color='#1f2328', size=11),
+        xaxis=dict(gridcolor='#eaeef2', linecolor='#d0d7de', tickcolor='#57606a'),
+        yaxis=dict(gridcolor='#eaeef2', linecolor='#d0d7de', tickcolor='#57606a'),
         margin=dict(l=40, r=20, t=50, b=40),
-        legend=dict(bgcolor='rgba(22,27,34,0.8)', bordercolor='#30363d', borderwidth=1),
+        legend=dict(bgcolor='rgba(255,255,255,0.9)', bordercolor='#d0d7de', borderwidth=1),
     )
     layout.update(extra)
     return layout
@@ -128,8 +128,8 @@ def get_color(coin):
 with st.sidebar:
     st.markdown("""
     <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;
-                color:#f78166;letter-spacing:0.05em;padding-bottom:12px;
-                border-bottom:1px solid #30363d;margin-bottom:16px;">
+                color:#e05c3a;letter-spacing:0.05em;padding-bottom:12px;
+                border-bottom:1px solid #d0d7de;margin-bottom:16px;">
         📈 CRYPTO TSA
     </div>
 """, unsafe_allow_html=True)
@@ -143,8 +143,8 @@ with st.sidebar:
     date_max   = df['Date'].max().date()
     date_range = st.slider("Date Range", min_value=date_min, max_value=date_max, value=(date_min, date_max))
     st.markdown("---")
-    st.markdown(f"""<div style="font-size:10px;color:#8b949e;font-family:'JetBrains Mono',monospace;line-height:1.8;">
-        <b style="color:#c9d1d9;">Dataset</b><br>
+    st.markdown(f"""<div style="font-size:10px;color:#57606a;font-family:'JetBrains Mono',monospace;line-height:1.8;">
+        <b style="color:#1f2328;">Dataset</b><br>
         Coins: {df['Name'].nunique()}<br>Rows: {len(df):,}<br>
         From: {df['Date'].min().date()}<br>To: {df['Date'].max().date()}
     </div>""", unsafe_allow_html=True)
@@ -156,8 +156,8 @@ primary_df = dff[dff['Name'] == primary_coin].sort_values('Date')
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px;">
-  <h1 style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:#c9d1d9;margin:0;">{primary_coin}</h1>
-  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8b949e;letter-spacing:0.1em;">TIME SERIES ANALYSIS</span>
+  <h1 style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:#1f2328;margin:0;">{primary_coin}</h1>
+  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#57606a;letter-spacing:0.1em;">TIME SERIES ANALYSIS</span>
 </div>""", unsafe_allow_html=True)
 
 # ── KPI cards ─────────────────────────────────────────────────────────────────
@@ -211,10 +211,10 @@ with tab1:
         increasing_fillcolor=ACCENT3, decreasing_fillcolor=ACCENT), row=1, col=1)
     if show_bb:
         fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['BB_Upper'],
-            line=dict(color='rgba(121,192,255,0.35)', width=0.8), name='BB Upper'), row=1, col=1)
+            line=dict(color='rgba(26,115,232,0.4)', width=0.8), name='BB Upper'), row=1, col=1)
         fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['BB_Lower'],
-            line=dict(color='rgba(121,192,255,0.35)', width=0.8), name='BB Lower',
-            fill='tonexty', fillcolor='rgba(121,192,255,0.04)'), row=1, col=1)
+            line=dict(color='rgba(26,115,232,0.4)', width=0.8), name='BB Lower',
+            fill='tonexty', fillcolor='rgba(26,115,232,0.06)'), row=1, col=1)
     if show_ma:
         for ma, color, w in [('MA_7', ACCENT, 0.9), ('MA_30', ACCENT3, 1.1), ('MA_90', ACCENT4, 1.3)]:
             fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df[ma],
@@ -226,14 +226,14 @@ with tab1:
         line=dict(color=ACCENT4, width=1.2), name='RSI 14', showlegend=False), row=3, col=1)
     fig.add_hline(y=70, line=dict(color=ACCENT,  dash='dash', width=0.8), row=3, col=1)
     fig.add_hline(y=30, line=dict(color=ACCENT3, dash='dash', width=0.8), row=3, col=1)
-    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='#161b22',
-                      font=dict(family='JetBrains Mono, monospace', color='#c9d1d9', size=11),
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='#ffffff',
+                      font=dict(family='JetBrains Mono, monospace', color='#1f2328', size=11),
                       margin=dict(l=40, r=20, t=50, b=40),
-                      legend=dict(bgcolor='rgba(22,27,34,0.8)', bordercolor='#30363d', borderwidth=1),
+                      legend=dict(bgcolor='rgba(255,255,255,0.9)', bordercolor='#d0d7de', borderwidth=1),
                       height=680, title=f'{primary_coin} — Candlestick Chart',
                       xaxis_rangeslider_visible=False)
-    fig.update_xaxes(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e')
-    fig.update_yaxes(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e')
+    fig.update_xaxes(gridcolor='#eaeef2', linecolor='#d0d7de', tickcolor='#57606a')
+    fig.update_yaxes(gridcolor='#eaeef2', linecolor='#d0d7de', tickcolor='#57606a')
     fig.update_yaxes(range=[0, 100], row=3, col=1)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -245,7 +245,7 @@ with tab1:
         line=dict(color=ACCENT2, width=1.0), name='MACD'), row=2, col=1)
     fig_macd.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['MACD_Signal'],
         line=dict(color=ACCENT, width=1.0), name='Signal'), row=2, col=1)
-    hist_colors = [ACCENT3 if v >= 0 else '#ff7b72' for v in primary_df['MACD_Hist'].fillna(0)]
+    hist_colors = [ACCENT3 if v >= 0 else '#cf3828' for v in primary_df['MACD_Hist'].fillna(0)]
     fig_macd.add_trace(go.Bar(x=primary_df['Date'], y=primary_df['MACD_Hist'],
         marker_color=hist_colors, opacity=0.7, name='Histogram'), row=2, col=1)
     fig_macd.update_layout(**pl(height=420, title=f'{primary_coin} — MACD'))
@@ -289,7 +289,7 @@ with tab2:
         sub = dff[dff['Name'] == coin].sort_values('Date')
         fig_vol2.add_trace(go.Scatter(x=sub['Date'], y=sub['Volume'], name=coin,
             mode='lines', line=dict(color=get_color(coin), width=1.0),
-            fill='tozeroy', fillcolor='rgba(121,192,255,0.07)'))
+            fill='tozeroy', fillcolor='rgba(26,115,232,0.07)'))
     fig_vol2.update_layout(**pl(height=350, yaxis_title='Volume', hovermode='x unified'))
     st.plotly_chart(fig_vol2, use_container_width=True)
 
@@ -314,7 +314,7 @@ with tab3:
         fig_ret = go.Figure()
         fig_ret.add_trace(go.Histogram(x=sub_ret, nbinsx=80,
             marker_color=get_color(primary_coin), opacity=0.8, name='Log Returns'))
-        fig_ret.add_vline(x=float(sub_ret.mean()), line=dict(color='white', dash='dash', width=1))
+        fig_ret.add_vline(x=float(sub_ret.mean()), line=dict(color='#1f2328', dash='dash', width=1))
         fig_ret.add_vline(x=float(sub_ret.mean() + 2*sub_ret.std()), line=dict(color=ACCENT, dash='dot', width=0.8))
         fig_ret.add_vline(x=float(sub_ret.mean() - 2*sub_ret.std()), line=dict(color=ACCENT, dash='dot', width=0.8))
         fig_ret.update_layout(**pl(height=360, xaxis_title='Log Return', yaxis_title='Count'))
@@ -380,7 +380,7 @@ with tab4:
                 fig_pr.add_trace(go.Scatter(
                     x=pd.concat([pr_df['ds'], pr_df['ds'][::-1]]),
                     y=pd.concat([pr_df['yhat_upper'], pr_df['yhat_lower'][::-1]]),
-                    fill='toself', fillcolor='rgba(210,168,255,0.12)',
+                    fill='toself', fillcolor='rgba(124,58,237,0.10)',
                     line=dict(color='rgba(0,0,0,0)'), name='Uncertainty Band'))
             fig_pr.add_trace(go.Scatter(x=pr_df['ds'], y=pr_df['yhat'],
                 line=dict(color=ACCENT4, width=1.5), name='Prophet Forecast'))
@@ -426,16 +426,16 @@ with tab5:
                     marker_color=bar_colors[:len(eval_df)],
                     text=[f"{v:,.0f}" if metric != 'MAPE_%' else f"{v:.1f}%" for v in eval_df[metric]],
                     textposition='outside',
-                    textfont=dict(color='#c9d1d9', size=10)
+                    textfont=dict(color='#1f2328', size=10)
                 ))
                 fig_bar.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='#161b22',
-                    font=dict(family='JetBrains Mono, monospace', color='#c9d1d9', size=11),
+                    plot_bgcolor='#ffffff',
+                    font=dict(family='JetBrains Mono, monospace', color='#1f2328', size=11),
                     margin=dict(l=40, r=20, t=50, b=40),
-                    xaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e', tickangle=-20),
-                    yaxis=dict(gridcolor='#21262d', linecolor='#30363d', tickcolor='#8b949e'),
-                    legend=dict(bgcolor='rgba(22,27,34,0.8)', bordercolor='#30363d', borderwidth=1),
+                    xaxis=dict(gridcolor='#eaeef2', linecolor='#d0d7de', tickcolor='#57606a', tickangle=-20),
+                    yaxis=dict(gridcolor='#eaeef2', linecolor='#d0d7de', tickcolor='#57606a'),
+                    legend=dict(bgcolor='rgba(255,255,255,0.9)', bordercolor='#d0d7de', borderwidth=1),
                     height=320, title=metric, showlegend=False
                 )
                 col.plotly_chart(fig_bar, use_container_width=True)
@@ -461,7 +461,7 @@ with tab6:
     show_cols = st.multiselect("Columns", dff.columns.tolist(),
                                 default=default_cols, key='raw_col_filter')
     filtered_raw = dff[dff['Name'].isin(selected_coins_raw)][show_cols] if selected_coins_raw else dff[show_cols]
-    st.markdown(f"<div style='font-size:11px;color:#8b949e;font-family:JetBrains Mono,monospace;margin-bottom:8px;'>"
+    st.markdown(f"<div style='font-size:11px;color:#57606a;font-family:JetBrains Mono,monospace;margin-bottom:8px;'>"
                 f"{len(filtered_raw):,} rows · {len(show_cols)} columns</div>", unsafe_allow_html=True)
     st.dataframe(filtered_raw.sort_values('Date', ascending=False).head(500),
                  use_container_width=True, hide_index=True)
