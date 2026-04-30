@@ -10,20 +10,20 @@ import os
 
 st.set_page_config(page_title="Crypto TSA Dashboard", page_icon="📈", layout="wide", initial_sidebar_state="expanded")
 
-ACCENT  = '#e8b44b'   # gold — primary accent
-ACCENT2 = '#38bdf8'   # sky blue — data highlight
-ACCENT3 = '#34d399'   # emerald green — positive/up
-ACCENT4 = '#a78bfa'   # violet — secondary data
+ACCENT  = '#b5541a'
+ACCENT2 = '#1a5fa8'
+ACCENT3 = '#2a7a3a'
+ACCENT4 = '#6b3ab5'
 
 # ── Colour palette ─────────────────────────────────────────────────────────────
-BG_APP      = '#0f1724'   # deep navy — main background
-BG_SIDEBAR  = '#0b1120'   # darker navy for sidebar
-BG_CARD     = '#162032'   # card surface (elevated navy)
-BG_PLOT     = '#111e2e'   # chart canvas
-BORDER      = '#1e3a5f'   # steel blue border
-TEXT_MAIN   = '#e2eaf4'   # light slate — primary text
-TEXT_SUB    = '#6b8cad'   # muted steel blue
-GRID        = '#1a3050'   # subtle dark grid lines
+BG_APP      = '#f2ede4'   # warm parchment — main background
+BG_SIDEBAR  = '#e8e0d2'   # slightly deeper cream for sidebar
+BG_CARD     = '#ede8de'   # card surface
+BG_PLOT     = '#f7f3ec'   # chart canvas
+BORDER      = '#cfc5b0'   # warm tan border
+TEXT_MAIN   = '#2c2416'   # dark espresso text
+TEXT_SUB    = '#7a6a52'   # muted warm brown
+GRID        = '#e0d9cc'   # subtle grid lines
 
 st.markdown(f"""
 <style>
@@ -31,46 +31,19 @@ st.markdown(f"""
   html, body, [class*="css"] {{ font-family: 'Space Grotesk', sans-serif; background-color: {BG_APP}; color: {TEXT_MAIN}; }}
   .stApp {{ background-color: {BG_APP}; }}
   section[data-testid="stSidebar"] {{ background-color: {BG_SIDEBAR}; border-right: 1px solid {BORDER}; }}
-  /* Metric cards with premium dark glass feel */
-  .metric-card {{
-    background: linear-gradient(135deg, {BG_CARD} 0%, #0d1a2e 100%);
-    border: 1px solid {BORDER};
-    border-top: 1px solid #2a5080;
-    border-radius: 10px;
-    padding: 16px 20px;
-    text-align: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(56,189,248,0.05);
-  }}
-  .metric-card .label {{ font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: {TEXT_SUB}; font-family: 'JetBrains Mono', monospace; }}
-  .metric-card .value {{ font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: {ACCENT2}; margin-top: 6px; text-shadow: 0 0 20px rgba(56,189,248,0.3); }}
+  .metric-card {{ background: {BG_CARD}; border: 1px solid {BORDER}; border-radius: 8px; padding: 16px 20px; text-align: center; box-shadow: 0 1px 4px rgba(90,60,20,0.10); }}
+  .metric-card .label {{ font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: {TEXT_SUB}; font-family: 'JetBrains Mono', monospace; }}
+  .metric-card .value {{ font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: {ACCENT2}; margin-top: 4px; }}
   .metric-card .delta {{ font-size: 12px; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }}
-  .section-header {{
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    color: {ACCENT};
-    text-transform: uppercase;
-    border-bottom: 1px solid {BORDER};
-    padding-bottom: 8px;
-    margin-bottom: 16px;
-  }}
+  .section-header {{ font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.1em; color: {ACCENT}; text-transform: uppercase; border-bottom: 1px solid {BORDER}; padding-bottom: 8px; margin-bottom: 16px; }}
   h1 {{ font-family: 'JetBrains Mono', monospace; color: {TEXT_MAIN} !important; }}
   h2, h3 {{ font-family: 'Space Grotesk', sans-serif; color: {TEXT_MAIN} !important; }}
-  /* Widget overrides for dark theme */
+  /* Streamlit widget overrides for warm tone */
   .stSelectbox label, .stMultiSelect label, .stSlider label, .stCheckbox label {{ color: {TEXT_MAIN} !important; }}
-  div[data-baseweb="select"] {{ background-color: {BG_CARD} !important; border-color: {BORDER} !important; color: {TEXT_MAIN} !important; }}
-  div[data-baseweb="select"] * {{ color: {TEXT_MAIN} !important; }}
-  .stTabs [data-baseweb="tab-list"] {{ background-color: {BG_SIDEBAR}; border-radius: 6px; border: 1px solid {BORDER}; }}
+  div[data-baseweb="select"] {{ background-color: {BG_CARD} !important; border-color: {BORDER} !important; }}
+  .stTabs [data-baseweb="tab-list"] {{ background-color: {BG_SIDEBAR}; border-radius: 6px; }}
   .stTabs [data-baseweb="tab"] {{ color: {TEXT_SUB}; }}
-  .stTabs [aria-selected="true"] {{ background-color: {BG_CARD}; color: {ACCENT}; border-bottom: 2px solid {ACCENT}; }}
-  /* Dataframe dark styling */
-  .stDataFrame {{ border: 1px solid {BORDER}; border-radius: 6px; }}
-  /* Download button */
-  .stDownloadButton button {{ background-color: {BG_CARD}; border: 1px solid {BORDER}; color: {ACCENT2}; }}
-  .stDownloadButton button:hover {{ border-color: {ACCENT2}; color: {ACCENT2}; }}
-  /* Info boxes */
-  .stAlert {{ background-color: {BG_CARD}; border: 1px solid {BORDER}; color: {TEXT_MAIN}; }}
-  hr {{ border-color: {BORDER}; }}
+  .stTabs [aria-selected="true"] {{ background-color: {BG_CARD}; color: {TEXT_MAIN}; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -159,10 +132,10 @@ with st.spinner("Loading data..."):
 
 all_coins = sorted(df['Name'].unique().tolist())
 coin_colors = {
-    'Bitcoin':  '#f7931a', 'Ethereum': '#627eea',  'Litecoin': '#bfbbbb',
-    'XRP':      '#346aa9', 'Dogecoin': '#c2a633',  'Monero':   '#ff6600',
-    'Solana':   '#9945ff', 'Cardano':  '#0d99ff',  'Stellar':  '#00b4d8',
-    'Chainlink':'#2a5ada',
+    'Bitcoin':  ACCENT2, 'Ethereum': ACCENT,   'Litecoin': ACCENT3,
+    'XRP':      ACCENT4, 'Dogecoin': '#ffa657', 'Monero':   '#ff7b72',
+    'Solana':   '#58a6ff','Cardano':  '#bc8cff', 'Stellar':  '#3fb950',
+    'Chainlink':'#e3b341',
 }
 def get_color(coin):
     return coin_colors.get(coin, ACCENT2)
@@ -171,8 +144,8 @@ def get_color(coin):
 with st.sidebar:
     st.markdown("""
     <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;
-                color:#e8b44b;letter-spacing:0.05em;padding-bottom:12px;
-                border-bottom:1px solid #1e3a5f;margin-bottom:16px;">
+                color:#e05c3a;letter-spacing:0.05em;padding-bottom:12px;
+                border-bottom:1px solid #cfc5b0;margin-bottom:16px;">
         📈 CRYPTO TSA
     </div>
 """, unsafe_allow_html=True)
@@ -187,7 +160,7 @@ with st.sidebar:
     date_max   = df['Date'].max().date()
     date_range = st.slider("Date Range", min_value=date_min, max_value=date_max, value=(date_min, date_max))
     st.markdown("---")
-    st.markdown(f"""<div style="font-size:10px;color:#6b8cad;font-family:'JetBrains Mono',monospace;line-height:1.8;">
+    st.markdown(f"""<div style="font-size:10px;color:#7a6a52;font-family:'JetBrains Mono',monospace;line-height:1.8;">
         <b style="color:{TEXT_MAIN};">Dataset</b><br>
         Coins: {df['Name'].nunique()}<br>Rows: {len(df):,}<br>
         From: {df['Date'].min().date()}<br>To: {df['Date'].max().date()}
@@ -200,8 +173,8 @@ primary_df = dff[dff['Name'] == primary_coin].sort_values('Date')
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px;">
-  <h1 style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:#e2eaf4;margin:0;">{primary_coin}</h1>
-  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6b8cad;letter-spacing:0.1em;">TIME SERIES ANALYSIS</span>
+  <h1 style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:#2c2416;margin:0;">{primary_coin}</h1>
+  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7a6a52;letter-spacing:0.1em;">TIME SERIES ANALYSIS</span>
 </div>""", unsafe_allow_html=True)
 
 # ── KPI cards ─────────────────────────────────────────────────────────────────
@@ -255,10 +228,10 @@ with tab1:
         increasing_fillcolor=ACCENT3, decreasing_fillcolor=ACCENT), row=1, col=1)
     if show_bb:
         fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['BB_Upper'],
-            line=dict(color='rgba(56,189,248,0.35)', width=0.8), name='BB Upper'), row=1, col=1)
+            line=dict(color='rgba(26,115,232,0.4)', width=0.8), name='BB Upper'), row=1, col=1)
         fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['BB_Lower'],
-            line=dict(color='rgba(56,189,248,0.35)', width=0.8), name='BB Lower',
-            fill='tonexty', fillcolor='rgba(56,189,248,0.04)'), row=1, col=1)
+            line=dict(color='rgba(26,115,232,0.4)', width=0.8), name='BB Lower',
+            fill='tonexty', fillcolor='rgba(26,115,232,0.06)'), row=1, col=1)
     if show_ma:
         for ma, color, w in [('MA_7', ACCENT, 0.9), ('MA_30', ACCENT3, 1.1), ('MA_90', ACCENT4, 1.3)]:
             fig.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df[ma],
@@ -289,7 +262,7 @@ with tab1:
         line=dict(color=ACCENT2, width=1.0), name='MACD'), row=2, col=1)
     fig_macd.add_trace(go.Scatter(x=primary_df['Date'], y=primary_df['MACD_Signal'],
         line=dict(color=ACCENT, width=1.0), name='Signal'), row=2, col=1)
-    hist_colors = [ACCENT3 if v >= 0 else '#f43f5e' for v in primary_df['MACD_Hist'].fillna(0)]
+    hist_colors = [ACCENT3 if v >= 0 else '#cf3828' for v in primary_df['MACD_Hist'].fillna(0)]
     fig_macd.add_trace(go.Bar(x=primary_df['Date'], y=primary_df['MACD_Hist'],
         marker_color=hist_colors, opacity=0.7, name='Histogram'), row=2, col=1)
     fig_macd.update_layout(**pl(height=420, title=f'{primary_coin} — MACD'))
@@ -333,7 +306,7 @@ with tab2:
         sub = dff[dff['Name'] == coin].sort_values('Date')
         fig_vol2.add_trace(go.Scatter(x=sub['Date'], y=sub['Volume'], name=coin,
             mode='lines', line=dict(color=get_color(coin), width=1.0),
-            fill='tozeroy', fillcolor='rgba(56,189,248,0.05)'))
+            fill='tozeroy', fillcolor='rgba(26,115,232,0.07)'))
     fig_vol2.update_layout(**pl(height=350, yaxis_title='Volume', hovermode='x unified'))
     st.plotly_chart(fig_vol2, use_container_width=True)
 
@@ -424,7 +397,7 @@ with tab4:
                 fig_pr.add_trace(go.Scatter(
                     x=pd.concat([pr_df['ds'], pr_df['ds'][::-1]]),
                     y=pd.concat([pr_df['yhat_upper'], pr_df['yhat_lower'][::-1]]),
-                    fill='toself', fillcolor='rgba(167,139,250,0.12)',
+                    fill='toself', fillcolor='rgba(124,58,237,0.10)',
                     line=dict(color='rgba(0,0,0,0)'), name='Uncertainty Band'))
             fig_pr.add_trace(go.Scatter(x=pr_df['ds'], y=pr_df['yhat'],
                 line=dict(color=ACCENT4, width=1.5), name='Prophet Forecast'))
