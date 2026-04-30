@@ -413,7 +413,7 @@ with tab2:
         sub = dff[dff['Name'] == coin].sort_values('Date')
         fig_vol2.add_trace(go.Scatter(x=sub['Date'], y=sub['Volume'], name=coin,
             mode='lines', line=dict(color=get_color(coin), width=1.0),
-            fill='tozeroy', fillcolor=get_color(coin).replace('#', 'rgba(').replace(')', ',0.07)') if '#' in get_color(coin) else 'rgba(121,192,255,0.07)'
+            fill='tozeroy', fillcolor='rgba(121,192,255,0.07)'
         ))
     fig_vol2.update_layout(**PLOTLY_LAYOUT, height=350,
                            yaxis_title='Volume', hovermode='x unified')
