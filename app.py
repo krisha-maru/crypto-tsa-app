@@ -481,8 +481,9 @@ with tab3:
             line=dict(color=get_color(coin), width=1.1)))
     fig_rsi.add_hline(y=70, line=dict(color=ACCENT,  dash='dash', width=0.8))
     fig_rsi.add_hline(y=30, line=dict(color=ACCENT3, dash='dash', width=0.8))
-    fig_rsi.update_layout(**PLOTLY_LAYOUT, height=340,
-                          yaxis=dict(range=[0,100], gridcolor='#21262d'),
+    rsi_layout = {k: v for k, v in PLOTLY_LAYOUT.items() if k != 'yaxis'}
+    fig_rsi.update_layout(**rsi_layout, height=340,
+                          yaxis=dict(range=[0,100], gridcolor='#21262d', tickcolor='#8b949e'),
                           yaxis_title='RSI (14)')
     st.plotly_chart(fig_rsi, use_container_width=True)
 
